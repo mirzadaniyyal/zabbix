@@ -1,0 +1,37 @@
+Step#01
+apt update && apt upgrade -y
+wget https://repo.zabbix.com/zabbix/5.5/ubuntu/pool/main/z/zabbix-release/zabbix-release_5.5-1+ubuntu20.04_all.deb
+dpkg -i zabbix-release_5.5-1+ubuntu20.04_all.deb
+apt update
+Step#02
+apt install -y zabbix-server-mysql zabbix-frontend-php zabbix-nginx-conf zabbix-sql-scripts zabbix-agent
+#Install mysql database server.
+apt install -y mysql-server-8.0
+#Then create database and user using below command.
+mysql -u root -p
+create database zabbix_db character set utf8 collate utf8_bin;
+create user zabbix_user@localhost identified by 'zabbix@123';
+GRANT CREATE, ALTER, DROP, INSERT, UPDATE, DELETE, SELECT, REFERENCES, RELOAD on *.* TO 'zabbix_user'@'localhost' WITH GRANT OPTION;
+grant all privileges on zabbix_db.* to zabbix_user@localhost;
+FLUSH PRIVILEGES;
+Step #03: Import zabbix default database.
+zcat /usr/share/doc/zabbix-sql-scripts/mysql/create.sql.gz | mysql -uroot -p zabbix_db
+Step #04: Add database name, database user and database password
+nano /etc/zabbix/zabbix_server.conf
+Insert below three lines into this file, but must be replace database name and database user.
+
+DBName=zabbix_db
+DBUser=zabbix_user
+DBPassword=zabbix@123
+Step#05: Setup server ip address.
+vi /etc/zabbix/nginx.conf
+listen 80;
+server_name 192.168.0.150
+Step#06: Restart and enable all services.
+systemctl restart zabbix-server zabbix-agent nginx php7.4-fpm
+systemctl enable zabbix-server zabbix-agent nginx php7.4-fpm
+Access your server ip address and complete web installation process.
+
+http://10.66.100.15/
+
+Now install from web browser then login using default user name and password.
